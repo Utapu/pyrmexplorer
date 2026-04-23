@@ -1,0 +1,135 @@
+name: Build Artifacts
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    name: Windows (${{ matrix.arch }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - x64
+          - x86
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          architecture: ${{ matrix.arch }}
+
+      - name: Install ImageMagick
+        shell: powershell
+        run: choco install imagemagick --no-progress -y
+
+      - name: Install Python dependencies
+        shell: powershell
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pyinstaller
+
+      - name: Build Windows bundle
+        shell: cmd
+        run: pyinstaller\compile.bat --clean
+
+      - name: Package artifact
+        shell: powershell
+        run: Compress-Archive -Path dist\rmexplorer\* -DestinationPath rmexplorer-windows-${{ matrix.arch }}.zip
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rmexplorer-windows-${{ matrix.arch }}
+          path: rmexplorer-windows-${{ matrix.arch }}.zip
+
+  linux:
+    name: Linux bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagickwand-dev imagemagick
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt pyinstaller
+
+      - name: Build Linux bundle
+        run: ./pyinstaller/compile-linux.sh
+
+      - name: Package artifact
+        run: tar -C dist -czf rmexplorer-linux.tar.gz rmexplorer
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rmexplorer-linux
+          path: rmexplorer-linux.tar.gz
+
+  fedora:
+    name: Fedora RPM
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:42
+    steps:
+      - name: Install checkout prerequisites
+        run: dnf install -y git tar gzip
+
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          dnf install -y \
+            desktop-file-utils \
+            gcc \
+            ImageMagick \
+            ImageMagick-devel \
+            python3 \
+            python3-devel \
+            python3-pip \
+            rpm-build
+
+      - name: Prepare source tarball
+        shell: bash
+        run: |
+          VERSION="$(python3 -c "from rmexplorer._version import __version__; print(__version__)")"
+          mkdir -p "$HOME/rpmbuild/SOURCES"
+          git archive --format=tar.gz --prefix="pyrmexplorer-${VERSION}/" HEAD > "$HOME/rpmbuild/SOURCES/pyrmexplorer-${VERSION}.tar.gz"
+
+      - name: Build Fedora RPM
+        run: rpmbuild -ba packaging/fedora/pyrmexplorer.spec --define "_topdir $HOME/rpmbuild"
+
+      - name: Collect Fedora artifact
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          cp "$HOME"/rpmbuild/RPMS/*/*.rpm artifacts/
+
+      - name: Upload Fedora artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rmexplorer-fedora-rpm
+          path: artifacts/*.rpm

@@ -27,9 +27,15 @@
 @echo off
 
 setlocal
+set CLEAN=
+IF /I "%~1"=="--clean" SET CLEAN=1
+IF /I "%CI%"=="true" SET CLEAN=1
+IF /I "%GITHUB_ACTIONS%"=="true" SET CLEAN=1
+IF DEFINED CLEAN GOTO CLEANUP
 :PROMPT
 SET /P ANSWER=Delete any previous compilation output? (Y/[N])
 IF /I "%ANSWER%" NEQ "Y" GOTO END
+:CLEANUP
 IF EXIST build @RD /S /Q build
 IF EXIST dist @RD /S /Q dist
 IF EXIST rmexplorer.spec DEL rmexplorer.spec
