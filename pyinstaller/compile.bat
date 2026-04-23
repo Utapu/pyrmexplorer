@@ -46,14 +46,15 @@ IF EXIST "%BUILD_DIR%" @RD /S /Q "%BUILD_DIR%"
 IF EXIST "%DIST_DIR%" @RD /S /Q "%DIST_DIR%"
 IF EXIST "%SPEC_FILE%" DEL "%SPEC_FILE%"
 :END
-endlocal
 
 pyinstaller --paths=.. ^
     --workpath "..\build" ^
     --distpath "..\dist" ^
     --specpath ".." ^
-    --add-data ../README;. ^
-    --add-data ../COPYING;. ^
-    --add-binary ../rmexplorer/icon.ico;. ^
-    --icon=../rmexplorer/icon.ico ^
-    -n rmexplorer -w rmexplorer_pyi.py
+    --add-data "%REPO_ROOT%\README;." ^
+    --add-data "%REPO_ROOT%\COPYING;." ^
+    --add-binary "%REPO_ROOT%\rmexplorer\icon.ico;." ^
+    --icon="%REPO_ROOT%\rmexplorer\icon.ico" ^
+    -n rmexplorer -w "%SCRIPT_DIR%rmexplorer_pyi.py"
+
+endlocal

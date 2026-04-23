@@ -36,11 +36,11 @@ pyinstaller --paths=.. \
     --workpath "${build_dir}" \
     --distpath "${dist_dir}" \
     --specpath "${spec_dir}" \
-    --add-data ../README:. \
-    --add-data ../COPYING:. \
-    --add-data ../rmexplorer/icon.ico:. \
-    --add-data ../rmexplorer/icon.svg:. \
-    --icon=../rmexplorer/icon.svg \
-    -n rmexplorer -w rmexplorer_pyi.py
+    --add-data "${repo_root}/README:." \
+    --add-data "${repo_root}/COPYING:." \
+    --add-data "${repo_root}/rmexplorer/icon.ico:." \
+    --add-data "${repo_root}/rmexplorer/icon.svg:." \
+    --icon="${repo_root}/rmexplorer/icon.svg" \
+    -n rmexplorer -w "${script_dir}/rmexplorer_pyi.py"
 
 printf '\nLinux bundle created at %s\n' "${repo_root}/dist/rmexplorer"
