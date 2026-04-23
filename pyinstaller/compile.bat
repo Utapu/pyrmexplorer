@@ -27,22 +27,31 @@
 @echo off
 
 setlocal
+set SCRIPT_DIR=%~dp0
+for %%I in ("%SCRIPT_DIR%..") do set REPO_ROOT=%%~fI
+set BUILD_DIR=%REPO_ROOT%\build
+set DIST_DIR=%REPO_ROOT%\dist
+set SPEC_FILE=%REPO_ROOT%\rmexplorer.spec
 set CLEAN=
 IF /I "%~1"=="--clean" SET CLEAN=1
 IF /I "%CI%"=="true" SET CLEAN=1
 IF /I "%GITHUB_ACTIONS%"=="true" SET CLEAN=1
+cd /D "%SCRIPT_DIR%"
 IF DEFINED CLEAN GOTO CLEANUP
 :PROMPT
 SET /P ANSWER=Delete any previous compilation output? (Y/[N])
 IF /I "%ANSWER%" NEQ "Y" GOTO END
 :CLEANUP
-IF EXIST build @RD /S /Q build
-IF EXIST dist @RD /S /Q dist
-IF EXIST rmexplorer.spec DEL rmexplorer.spec
+IF EXIST "%BUILD_DIR%" @RD /S /Q "%BUILD_DIR%"
+IF EXIST "%DIST_DIR%" @RD /S /Q "%DIST_DIR%"
+IF EXIST "%SPEC_FILE%" DEL "%SPEC_FILE%"
 :END
 endlocal
 
 pyinstaller --paths=.. ^
+    --workpath "..\build" ^
+    --distpath "..\dist" ^
+    --specpath ".." ^
     --add-data ../README;. ^
     --add-data ../COPYING;. ^
     --add-binary ../rmexplorer/icon.ico;. ^

@@ -24,12 +24,18 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "${script_dir}/.." && pwd)"
+build_dir="${repo_root}/build"
+dist_dir="${repo_root}/dist"
+spec_dir="${repo_root}"
 
 cd "${script_dir}"
 
-rm -rf build dist rmexplorer.spec
+rm -rf "${build_dir}" "${dist_dir}" "${spec_dir}/rmexplorer.spec"
 
 pyinstaller --paths=.. \
+    --workpath "${build_dir}" \
+    --distpath "${dist_dir}" \
+    --specpath "${spec_dir}" \
     --add-data ../README:. \
     --add-data ../COPYING:. \
     --add-data ../rmexplorer/icon.ico:. \
