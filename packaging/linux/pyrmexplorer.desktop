@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=pyrmexplorer
+Comment=GUI explorer for reMarkable tablets
+Exec=pyrmexplorer
+Icon=pyrmexplorer
+Terminal=false
+Categories=Utility;Office;
+StartupNotify=true
